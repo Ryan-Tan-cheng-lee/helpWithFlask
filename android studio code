@@ -1,0 +1,87 @@
+package com.example.flasktester;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
+
+import io.socket.client.Socket;
+import io.socket.client.IO;
+import io.socket.emitter.Emitter;
+import okhttp3.OkHttpClient;
+
+
+public class MainActivity extends AppCompatActivity {
+    Socket mSocket = null;
+    public void emitFunction1Event(View view) {
+        if (mSocket != null) {
+            Log.d("21", String.valueOf(mSocket));
+            mSocket.emit("Fn1");
+            Toast.makeText(this, "Function1 event emitted", Toast.LENGTH_SHORT).show();
+        } else {
+            Log.d("Socket Error", "Socket not initialized");
+        }
+    }
+
+    protected void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        {
+            try {
+                IO.Options options = new IO.Options();
+                OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+                        .connectTimeout(0, TimeUnit.MILLISECONDS)
+                        .readTimeout(0, TimeUnit.MILLISECONDS)
+                        .writeTimeout(0, TimeUnit.MILLISECONDS);
+                options.callFactory = clientBuilder.build();
+                mSocket = IO.socket("http://127.0.0.1:5000", options);
+                Log.d("Socket Connection", "Connected");
+            } catch (URISyntaxException e) {
+                Log.d("Error connecting", e.toString());
+            }
+        }Emitter.Listener onConnect = new Emitter.Listener() {
+            @Override
+            public void call(final Object... args) {
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("Connect", "connected");
+                    }
+                });
+            }
+        };
+
+
+        Emitter.Listener onLog = new Emitter.Listener() {
+            @Override
+            public void call(final Object... args) {
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                    }
+
+
+
+                });
+            }
+        };
+        mSocket.on("log", onLog);
+        mSocket.connect();
+
+    }
+
+
+}
